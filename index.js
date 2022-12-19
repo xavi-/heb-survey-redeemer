@@ -41,7 +41,33 @@ async function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function redeemReceipt(certificateCode, date) {
+async function finishSurvey(certificateCode, page, idx) {
+    await next(page, idx + 0); // Leave a comment
+    await page.click(".menuItem:first-child input");
+
+    await next(page, idx + 1);
+    await page.click(".promptContainer:nth-child(1) .menuItem:first-child input");
+    await page.click(".promptContainer:nth-child(2) .menuItem:first-child input");
+    await page.click(".promptContainer:nth-child(3) .menuItem:first-child input");
+
+    await next(page, idx + 2);
+    await page.type(".promptContainer:nth-child(2) input", "Roberto");
+    await page.type(".promptContainer:nth-child(3) input", "Ramirez");
+    await page.type(".promptContainer:nth-child(4) input", "xavi.rmz@gmail.com");
+    await page.type(".promptContainer:nth-child(5) input", "78758");
+    await page.type(".promptContainer:nth-child(6) input", "956-358-8629");
+
+    await next(page, idx + 3);
+    await page.click(".promptContainer:nth-child(1) .menuItem:nth-child(3) input");
+    await page.click(".promptContainer:nth-child(2) .menuItem:nth-child(4) input");
+    await page.click(".promptContainer:nth-child(3) .menuItem:nth-child(5) input");
+    await page.click(".promptContainer:nth-child(4) .menuItem:nth-child(4) input");
+
+    await next(page, idx + 4);
+    await page.screenshot({ path: `./completed-receipts/receipt-${certificateCode}.png` });
+}
+
+async function redeemReceipt(certificateCode, date, cashier) {
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
 
@@ -56,75 +82,71 @@ async function redeemReceipt(certificateCode, date) {
     await page.type(".textInput input", certificateCode);
 
     await next(page, 2);
-    await page.type(".dateInput[aria-label*=date]", "11/13/2022");
+    await page.type(".dateInput[aria-label*=date]", date.toLocaleDateString());
     await page.click(".menuItem:last-child input");
 
     await next(page, 3);
-    await page.click(".menuItem:first-child input");
+    if (await page.$(".textInput input") != null) {
+        await page.type(".textInput input", cashier)
+    } else {
+        await page.click(".menuItem:first-child input");
+    }
 
     await next(page, 4);
     await page.click(".option:last-child .rating");
 
     await next(page, 5);
-    // Grocery department opinions
-    for(let i = 1; i <= 7; i++) {
-        let random = [ 1, 1, 1, 2, 2 ][(Math.random() * 5) | 0];
-        await page.click(
-            `.promptContainer:nth-child(${i + 1}) .option:nth-last-child(${random}) .rating`
-        );
+    const sections = (await page.$$(".promptContainer:has(.option .rating)")).length;
+    if(sections <= 2) {
+        await page.click(`.promptContainer:nth-child(1) .option:nth-last-child(1) .rating`);
+        await page.click(`.promptContainer:nth-child(2) .option:nth-last-child(1) .rating`);
+    } else {
+        // Grocery department opinions
+        for(let i = 1; i <= 7; i++) {
+            let random = [ 1, 1, 1, 2, 2 ][(Math.random() * 5) | 0];
+            await page.click(
+                `.promptContainer:nth-child(${i + 1}) .option:nth-last-child(${random}) .rating`
+            );
+        }
+        await page.click(`.promptContainer:nth-child(9) .option:nth-last-child(1) .rating`);
+        await page.click(`.promptContainer:nth-child(10) .option:nth-last-child(1) .rating`);
     }
-    await page.click(`.promptContainer:nth-child(9) .option:nth-last-child(1) .rating`);
-    await page.click(`.promptContainer:nth-child(10) .option:nth-last-child(1) .rating`);
 
     await next(page, 6);
     await page.click(".menuItem:first-child input");
 
     await next(page, 7);
-    await page.click(".menuItem:last-child input");
-
-    await next(page, 8);
-    await page.click(`.menuItem:nth-child(${(3 * Math.random() + 1) | 0 }) input`);
-
-    await next(page, 9);
-    await page.click(".promptContainer:nth-child(2) .option:nth-last-child(2) .rating");
-    await page.click(".promptContainer:nth-child(3) .option:nth-last-child(2) .rating");
-
-    await next(page, 10);
-    await page.click(".promptContainer:nth-child(2) .option:nth-last-child(1) .rating");
-    await page.click(".promptContainer:nth-child(3) .option:nth-last-child(1) .rating");
-
-    await next(page, 11);
-    await page.click(".promptContainer:first-child .menuItem:last-child input");
-
-    await next(page, 12);
-    await page.click(".promptContainer:nth-child(2) .option:nth-last-child(1) .rating");
-    await page.click(".promptContainer:nth-child(3) .option:nth-last-child(1) .rating");
-
-    await next(page, 13);
-    await page.click(".promptContainer:nth-child(1) .option:nth-last-child(2) .rating");
-
-    await next(page, 14);
     await page.click(".menuItem:first-child input");
 
-    await next(page, 15);
-    await page.click(".promptContainer:nth-child(1) .menuItem:first-child input");
-    await page.click(".promptContainer:nth-child(2) .menuItem:first-child input");
-    await page.click(".promptContainer:nth-child(3) .menuItem:first-child input");
+    await next(page, 8);
+    if (await page.$(".promptContainer:has(.option .rating)") != null) { // Paid with cash
+        await page.click(".promptContainer .option:nth-last-child(1) .rating");
 
-    await next(page, 16);
-    await page.type(".promptContainer:nth-child(2) input", "Roberto");
-    await page.type(".promptContainer:nth-child(3) input", "Ramirez");
-    await page.type(".promptContainer:nth-child(4) input", "xavi.rmz@gmail.com");
-    await page.type(".promptContainer:nth-child(5) input", "78758");
-    await page.type(".promptContainer:nth-child(6) input", "956-358-8629");
+        await finishSurvey(certificateCode, page, 9);
+    } else { // Paid with card
+        await page.click(`.menuItem:nth-child(${(2 * Math.random() + 1) | 0 }) input`);
 
-    await next(page, 17);
-    await page.click(".promptContainer:nth-child(1) .menuItem:nth-child(3) input");
-    await page.click(".promptContainer:nth-child(2) .menuItem:nth-child(4) input");
-    await page.click(".promptContainer:nth-child(3) .menuItem:nth-child(5) input");
-    await page.click(".promptContainer:nth-child(4) .menuItem:nth-child(4) input");
+        await next(page, 9);
+        await page.click(".promptContainer:nth-child(2) .option:nth-last-child(2) .rating");
+        await page.click(".promptContainer:nth-child(3) .option:nth-last-child(2) .rating");
 
-    await next(page, 18);
-    await page.screenshot({ path: `./completed-receipts/receipt-${certificateCode}.png` });
+        await next(page, 10);
+        await page.click(".promptContainer:nth-child(2) .option:nth-last-child(1) .rating");
+        await page.click(".promptContainer:nth-child(3) .option:nth-last-child(1) .rating");
+
+        await next(page, 11);
+        await page.click(".promptContainer:first-child .menuItem:last-child input");
+
+        await next(page, 12);
+        await page.click(".promptContainer:nth-child(2) .option:nth-last-child(1) .rating");
+        await page.click(".promptContainer:nth-child(3) .option:nth-last-child(1) .rating");
+
+        await next(page, 13);
+        await page.click(".promptContainer:nth-child(1) .option:nth-last-child(2) .rating");
+
+        // Sign up for HEB gift card
+        await finishSurvey(certificateCode, page, 14);
+    }
+
     await browser.close();
 }
