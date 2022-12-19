@@ -30,7 +30,7 @@ http.createServer(router).listen(8001);
 async function next(page, idx) {
     await Promise.all([
         page.click("button[aria-label=Next]"),
-        page.waitForNavigation({waitUntil: 'networkidle2'}),
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
         page.waitForSelector(`.i_${idx}`),
     ]);
 
