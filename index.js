@@ -1,4 +1,31 @@
+import http from "http";
+
+import * as bee from "beeline";
 import puppeteer from 'puppeteer';
+
+const router = bee.route({
+    "/": bee.staticFile("./frontend/index.html", "text/html"),
+    "/redeem": {
+        POST: async (req, res) => {
+            const body = [];
+            req.on("data", chunk => body.push(chunk.toString()));
+            req.on("end", async () => {
+                const { certificate_code, date, cashier } = JSON.parse(body.join(""));
+                console.log(
+                    `certificate_code: ${certificate_code}, date: ${date}, cashier: ${cashier}`
+                );
+                try {
+                    await redeemReceipt(certificate_code, new Date(date), cashier);
+                    res.end(JSON.stringify({ certificate_code, date, cashier }));
+                } catch(err) {
+                    res.end(JSON.stringify({ error: err.message }));
+                }
+            });
+        }
+    }
+});
+console.log("Listening on port 8001...");
+http.createServer(router).listen(8001);
 
 async function next(page, idx) {
     await Promise.all([
