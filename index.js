@@ -42,10 +42,14 @@ async function sleep(ms) {
 }
 
 async function finishSurvey(certificateCode, page, idx) {
-    await next(page, idx + 0); // Leave a comment
+    const elem = await page.$(".menuItem:last-child label");
+    const text = elem && await elem.evaluate(el => el.textContent);
+    if(!text?.includes("no comments at this")) {  // Is on "leave a comment" page
+        await next(page, idx + 0);
+    }
     await page.click(".menuItem:first-child input");
 
-    await next(page, idx + 1);
+    await next(page, idx + 1); // Opt into gift certificate reward
     await page.click(".promptContainer:nth-child(1) .menuItem:first-child input");
     await page.click(".promptContainer:nth-child(2) .menuItem:first-child input");
     await page.click(".promptContainer:nth-child(3) .menuItem:first-child input");
@@ -97,7 +101,9 @@ async function redeemReceipt(certificateCode, date, cashier) {
 
     await next(page, 5);
     const sections = (await page.$$(".promptContainer:has(.option .rating)")).length;
-    if(sections <= 2) {
+    if(sections <= 0) {
+        await page.click(".menuItem:first-child input");
+    } else if(sections <= 2) {
         await page.click(`.promptContainer:nth-child(1) .option:nth-last-child(1) .rating`);
         await page.click(`.promptContainer:nth-child(2) .option:nth-last-child(1) .rating`);
     } else {
@@ -116,10 +122,19 @@ async function redeemReceipt(certificateCode, date, cashier) {
     await page.click(".menuItem:first-child input");
 
     await next(page, 7);
-    await page.click(".menuItem:first-child input");
+    const ratings = (await page.$$(".promptContainer:has(.option .rating)")).length;
+    if(ratings <= 0) {
+        await page.click(".menuItem:first-child input");
+    } else {
+        await page.click(`.promptContainer:nth-child(1) .option:nth-last-child(1) .rating`);
+    }
 
     await next(page, 8);
-    if (await page.$(".promptContainer:has(.option .rating)") != null) { // Paid with cash
+    const elem = await page.waitForSelector(".menuItem:last-child label");
+    const text = await elem.evaluate(el => el.textContent);
+    if(text.includes("no comments at this")) { // Survey is over
+        await finishSurvey(certificateCode, page, 8);
+    } else if (await page.$(".promptContainer:has(.option .rating)") != null) { // Paid with cash
         await page.click(".promptContainer .option:nth-last-child(1) .rating");
 
         await finishSurvey(certificateCode, page, 9);
