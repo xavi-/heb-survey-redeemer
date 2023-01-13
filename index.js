@@ -34,7 +34,7 @@ async function next(page, idx) {
         page.waitForSelector(`.i_${idx}`),
     ]);
 
-    return sleep(1000);
+    return sleep(Math.random() * 1000 + 500);
 }
 
 async function sleep(ms) {
