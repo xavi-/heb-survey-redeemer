@@ -130,9 +130,9 @@ async function redeemReceipt(certificateCode, date, cashier) {
     }
 
     await next(page, 8);
-    const elem = await page.waitForSelector(".menuItem:last-child label");
-    const text = await elem.evaluate(el => el.textContent);
-    if(text.includes("no comments at this")) { // Survey is over
+    const elem = await page.$(".menuItem:last-child label");
+    const text = elem && await elem.evaluate(el => el.textContent);
+    if(text?.includes("no comments at this")) { // Survey is over
         await finishSurvey(certificateCode, page, 8);
     } else if (await page.$(".promptContainer:has(.option .rating)") != null) { // Paid with cash
         await page.click(".promptContainer .option:nth-last-child(1) .rating");
