@@ -47,7 +47,9 @@ const data = vivify(document.body, {
         cashier: "SELF CHECKOUT",
     },
     date_changed(event) {
-        const date = event.target.valueAsDate;
+        let date = event.target.valueAsDate;
+        date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
+
         const month = (date.getMonth() + 1).toString();
         const day = date.getDate().toString();
         const year = (date.getFullYear() - 2000).toString();
