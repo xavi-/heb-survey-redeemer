@@ -8,6 +8,14 @@
     <h1>HEB Receipt Redeemer</h1>
     <form @submit=".submit">
         <label>
+            Date:
+            <input
+                .form.date
+                @change=".date_changed"
+                type="date"
+            />
+        </label>
+        <label>
             Certificate Code:
             <input
                 .form.certificate_code
@@ -16,7 +24,6 @@
 
             />
         </label>
-        <label>Date: <input .form.date type="date" value="" required max="2023-12-31" /></label>
         <label>Cashier: <input .form.cashier type="text" value="" required /></label>
         <button type="submit" @click=".submit">Submit</button>
     </form>
@@ -35,6 +42,15 @@ const data = vivify(document.body, {
         certificate_code: null,
         date: null,
         cashier: "SELF CHECKOUT",
+    },
+    date_changed(event) {
+        const date = event.target.valueAsDate;
+        const month = (date.getMonth() + 1).toString();
+        const day = date.getDate().toString();
+        const year = (date.getFullYear() - 2000).toString();
+        const formatted_date = `${month.padStart(2, "0")}${day.padStart(2, "0")}${year}`;
+
+        data.form.certificate_code = `183${formatted_date}`;
     },
     results: null,
     submit: async (event, data) => {
