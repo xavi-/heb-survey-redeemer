@@ -16,6 +16,7 @@
                 .form.date
                 @change=".date_changed"
                 type="date"
+                value="" required min="2022-10-01" max="2023-12-31"
             />
         </label>
         <label>
@@ -23,8 +24,7 @@
             <input
                 .form.certificate_code
                 type="text" value="" required
-                minlength="18" maxlength="20" pattern="[\s0-9]{18,20}"
-
+                minlength="18" maxlength="19" pattern="(?:[0-9]{18}|[0-9]{12}\s[0-9]{6})"
             />
         </label>
         <label>Cashier: <input .form.cashier type="text" value="" required /></label>
