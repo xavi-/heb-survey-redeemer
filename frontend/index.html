@@ -16,7 +16,7 @@
                 .form.date
                 @change=".date_changed"
                 type="date"
-                value="" required min="2022-10-01" max="2023-12-31"
+                value="" required min.="$.min_date" max.="$.max_date"
             />
         </label>
         <label>
@@ -46,6 +46,8 @@ const data = vivify(document.body, {
         date: null,
         cashier: "SELF CHECKOUT",
     },
+    min_date: null,
+    max_date: null,
     date_changed(event) {
         if(!event.target.validity.valid) return;
 
@@ -75,6 +77,13 @@ const data = vivify(document.body, {
         data.results = results;
     }
 });
+
+(function updateMinMaxDate(){
+    data.min_date = new Date(Date.now() - 95 * 24 * 60 * 60 * 1000).toISOString().substr(0, 10);
+    data.max_date = new Date(Date.now() + 01 * 24 * 60 * 60 * 1000).toISOString().substr(0, 10);
+
+    setTimeout(updateMinMaxDate, 60 * 1000);
+})();
 </script>
 </body>
 </html>
