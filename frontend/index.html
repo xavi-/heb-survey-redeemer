@@ -47,6 +47,8 @@ const data = vivify(document.body, {
         cashier: "SELF CHECKOUT",
     },
     date_changed(event) {
+        if(!event.target.validity.valid) return;
+
         let date = event.target.valueAsDate;
         date = new Date(date.getTime() + date.getTimezoneOffset() * 60 * 1000);
 
