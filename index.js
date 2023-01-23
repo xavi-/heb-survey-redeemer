@@ -1,4 +1,5 @@
 import http from "http";
+import crypto from "crypto";
 
 import * as bee from "beeline";
 import puppeteer from 'puppeteer';
@@ -57,7 +58,8 @@ async function finishSurvey(certificateCode, page, idx) {
     await next(page, idx + 2);
     await page.type(".promptContainer:nth-child(2) input", "Roberto");
     await page.type(".promptContainer:nth-child(3) input", "Ramirez");
-    await page.type(".promptContainer:nth-child(4) input", "xavi.rmz@gmail.com");
+    let rnd = crypto.randomUUID().substring(24);
+    await page.type(".promptContainer:nth-child(4) input", `xavi.rmz+${rnd}@gmail.com`);
     await page.type(".promptContainer:nth-child(5) input", "78758");
     await page.type(".promptContainer:nth-child(6) input", "956-358-8629");
 
