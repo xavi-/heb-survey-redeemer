@@ -126,9 +126,11 @@ async function redeemReceipt(certificateCode, date, cashier) {
     await next(page, 7);
     const ratings = (await page.$$(".promptContainer:has(.option .rating)")).length;
     if(ratings <= 0) {
-        await page.click(".menuItem:first-child input");
+        const option = (Math.random() * 2 + 1) | 0;
+        await page.click(`.menuItem:nth-child(${option}) input`);
     } else {
-        await page.click(`.promptContainer:nth-child(1) .option:nth-last-child(1) .rating`);
+        const rate = (Math.random() * 2 + 1) | 0;
+        await page.click(`.promptContainer:nth-child(1) .option:nth-last-child(${rate}) .rating`);
     }
 
     await next(page, 8);
@@ -137,7 +139,8 @@ async function redeemReceipt(certificateCode, date, cashier) {
     if(text?.includes("no comments at this")) { // Survey is over
         await finishSurvey(certificateCode, page, 8);
     } else if (await page.$(".promptContainer:has(.option .rating)") != null) { // Paid with cash
-        await page.click(".promptContainer .option:nth-last-child(1) .rating");
+        const rate = (Math.random() * 2 + 1) | 0;
+        await page.click(`.promptContainer .option:nth-last-child(${rate}) .rating`);
 
         await finishSurvey(certificateCode, page, 9);
     } else { // Paid with card
